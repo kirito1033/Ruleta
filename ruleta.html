@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Ruleta AKUO</title>
+    <style>
+        body {
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 80px; /* Space for fixed navbar */
+            overflow-y: auto;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 95%;
+            background-color: #0288d1;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+        }
+
+        .navbar .logo {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar .nav-links a {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .navbar .nav-links a:hover {
+            color: #ffeb3b;
+        }
+
+        /* Responsive Navbar */
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .navbar .nav-links {
+                margin-top: 10px;
+                gap: 10px;
+            }
+        }
+
+        /* Footer Styles */
+        .footer {
+            width: 95%;
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto; /* Pushes footer to bottom */
+        }
+
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #ffeb3b;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #fff;
+        }
+
+        .footer .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .footer .social-links a {
+            color: #fff;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .footer .social-links a:hover {
+            color: #ffeb3b;
+        }
+
+        .contenedor {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        #ruleta {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 10px solid #1a1a1a;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #flecha {
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 50px solid #e91e63;
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .segmento {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.2s;
+        }
+
+        .segmento span {
+            position: absolute;
+            transform: rotate(90deg);
+            text-align: center;
+            width: 50%;
+            left: 75%;
+            top: 25%;
+            transform-origin: center;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            background-color: #0288d1;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #0277bd;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        #modalContent {
+            background: #fff;
+            color: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #pregunta {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        #respuesta {
+            display: none;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #0288d1;
+        }
+
+        #modalContent button {
+            margin: 10px;
+        }
+
+        #grupos {
+            margin: 20px 0;
+            font-size: 16px;
+            text-align: center;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #grupos p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="logo">Ruleta AKUO</a>
+        <div class="nav-links">
+            <a href="#">Inicio</a>
+        </div>
+    </nav>
+
+    <div class="contenedor">
+        <div id="flecha"></div>
+        <div id="ruleta"></div>
+    </div>
+
+    <button onclick="girar()">Girar ruleta</button>
+
+    <div id="modal">
+        <div id="modalContent">
+            <p id="pregunta"></p>
+            <button onclick="mostrarRespuesta()">Ver respuesta</button>
+            <p id="respuesta"></p>
+            <br>
+            <button onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="grupos">
+        <p><strong>Grupos:</strong></p>
+        <p>Carmen Leonor, Carlos Silva, Alexander y Juan Carlos</p>
+        <p>Monica, Ricardo, Valentina y Omaira</p>
+        <p>Magaly, Omar, Patricia y Yuly</p>
+        <p>Andres, Doña Janeth, German y Yeison</p>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 AKUO Agencia de Seguros. Todos los derechos reservados.</p>
+        <p><a href="https://akuo.com.co/">Visita nuestro sitio web</a></p>
+        <div class="social-links">
+            <a href="#" title="Facebook">📘</a>
+            <a href="#" title="Twitter">🐦</a>
+            <a href="#" title="LinkedIn">💼</a>
+        </div>
+    </footer>
+
+    <audio id="tickSound" src="https://www.soundjay.com/buttons/click-1.mp3"></audio>
+    <audio id="spinSound" src="https://www.fesliyanstudios.com/play-mp3/387"></audio>
+
+    <script>
+        const colores = [
+            "#e91e63", "#0288d1", "#f57c00", "#4caf50", "#9c27b0",
+            "#ffeb3b", "#795548", "#00bcd4", "#ff9800", "#8bc34a"
+        ];
+        let preguntas = [
+            {
+                pregunta: "¿Cuál es la misión de AKUO?",
+                respuesta: "Proporcionar servicios en gestión de riesgos e intermediación de seguros con un equipo interdisciplinario idóneo, comprometido con la satisfacción de las necesidades de protección de los clientes, con oportunidad y altos estándares de calidad."
+            },
+            {
+                pregunta: "Nombra los valores de AKUO",
+                respuesta: "Honestidad, empatía, respeto y compromiso"
+            },
+            {
+                pregunta: "¿Qué significa la palabra AKUO?",
+                respuesta: "Aquo, palabra griega, que significa fecha que señala el inicio de un periodo o un proceso"
+            },
+            {
+                pregunta: "¿Cuál es la visión de AKUO?",
+                respuesta: " En 2027 seremos un referente en el mercado de intermediación de seguros, por nuestro nivel de servicio y experiencia asesorando en gestión de riesgos y diseñando soluciones creativas de protección."
+            },
+            {
+                pregunta: "¿Cuál es la política de calidad de AKUO?",
+                respuesta: "En Akuo Agencia de Seguros Limitada, proporcionamos servicios en gestión de riesgos e intermediación de seguros, con un equipo interdisciplinario idóneo, comprometido con la satisfacción de las necesidades de protección de los clientes, con oportunidad y altos estándares de calidad."
+            },
+            {
+                pregunta: "¿Cuál es el objetivo principal de Placement?",
+                respuesta: "Establecer la metodología y las herramientas para realizar una correcta suscripción y expedición de los seguros requeridos por los clientes, garantizando la adecuada protección de sus bienes y patrimonio, mediante una asesoría profesional e idónea, enmarcada en el conocimiento de los productos y la oferta de servicios del mercado asegurador, para que el cliente pueda elegir la mejor opción de aseguramiento, de acuerdo con sus necesidades y expectativas. "
+            },
+            {
+                pregunta: "¿Cuál es el objetivo del área de Servicio al Cliente?",
+                respuesta: "Coordinar el relacionamiento comercial con los clientes vinculados, la gestión del servicio posventa para mantener, mejorar la satisfacción y permanencia del cliente, participar activamente en la renovación de los programas de seguros, velando por el cumplimiento del presupuesto de la agencia."
+            },
+            {
+                pregunta: "¿Qué significa la palabra ETHUSS?",
+                respuesta: "Edemsa, Termotécnica Coindustrial, HB Estructuras Metálicas, U.N.I.C.A, Sadelec Servicios Públicos"
+            },
+            {
+                pregunta: "¿En qué fecha se fundó AKUO?",
+                respuesta: "Akuo Agencia de Seguros fue fundada el 26 de abril de 2010 en Bogotá"
+            },
+            {
+                pregunta: "¿En qué países tiene participación AKUO?",
+                respuesta: "Colombia, España, México, Republica Dominicana, Guatemala, Honduras, Nicaragua, El Salvador, Costa Rica, Aruba, Panamá, Ecuador, Perú y Chile"
+            }
+        ];
+
+        let indicePreguntaActual = null;
+        const ruleta = document.getElementById("ruleta");
+        const tickSound = document.getElementById("tickSound");
+        const spinSound = document.getElementById("spinSound");
+        const modal = document.getElementById("modal");
+        const preguntaEl = document.getElementById("pregunta");
+        const respuestaEl = document.getElementById("respuesta");
+
+        function generarSegmentos() {
+            ruleta.innerHTML = "";
+            const total = preguntas.length;
+            if (total === 0) return;
+            const anguloPorSegmento = 360 / total;
+
+            preguntas.forEach((_, i) => {
+                const segmento = document.createElement("div");
+                segmento.className = "segmento";
+                // Create pie-shaped segment using clip-path
+                const startAngle = i * anguloPorSegmento;
+                const endAngle = (i + 1) * anguloPorSegmento;
+                segmento.style.clipPath = `path('M 200 200 L ${200 + 200 * Math.cos(startAngle * Math.PI / 180)} ${200 - 200 * Math.sin(startAngle * Math.PI / 180)} A 200 200 0 0 1 ${200 + 200 * Math.cos(endAngle * Math.PI / 180)} ${200 - 200 * Math.sin(endAngle * Math.PI / 180)} Z')`;
+                segmento.style.backgroundColor = colores[i % colores.length];
+
+                const textoSegmento = document.createElement("span");
+                textoSegmento.textContent = "?";
+                // Rotate text to align with segment
+                textoSegmento.style.transform = `rotate(${(startAngle + endAngle) / 2}deg)`;
+                segmento.appendChild(textoSegmento);
+
+                ruleta.appendChild(segmento);
+            });
+        }
+
+        generarSegmentos();
+
+        let girando = false;
+
+        function girar() {
+            if (girando || preguntas.length === 0) return;
+            girando = true;
+            spinSound.currentTime = 0;
+            spinSound.play();
+
+            const vueltas = 5;
+            const total = preguntas.length;
+            const anguloPorSegmento = 360 / total;
+            indicePreguntaActual = Math.floor(Math.random() * total);
+            const gradosFinal = vueltas * 360 + (360 - indicePreguntaActual * anguloPorSegmento) - (anguloPorSegmento / 2);
+
+            let currentAngle = 0;
+            const tickInterval = setInterval(() => {
+                currentAngle += anguloPorSegmento;
+                if (currentAngle < gradosFinal) {
+                    tickSound.currentTime = 0;
+                    tickSound.play();
+                } else {
+                    clearInterval(tickInterval);
+                }
+            }, 4000 / (gradosFinal / anguloPorSegmento));
+
+            ruleta.style.transform = `rotate(${gradosFinal}deg)`;
+
+            setTimeout(() => {
+                mostrarModal();
+                girando = false;
+            }, 4000);
+        }
+
+        function mostrarModal() {
+            const pregunta = preguntas[indicePreguntaActual];
+            preguntaEl.textContent = pregunta.pregunta;
+            respuestaEl.style.display = "none";
+            respuestaEl.textContent = pregunta.respuesta;
+            modal.style.display = "flex";
+        }
+
+        function mostrarRespuesta() {
+            respuestaEl.style.display = "block";
+        }
+
+        function cerrarModal() {
+            modal.style.display = "none";
+            if (indicePreguntaActual !== null) {
+                preguntas.splice(indicePreguntaActual, 1);
+                indicePreguntaActual = null;
+                generarSegmentos();
+                ruleta.style.transform = "rotate(0deg)";
+            }
+        }
+    </script>
+</body>
+</html>
